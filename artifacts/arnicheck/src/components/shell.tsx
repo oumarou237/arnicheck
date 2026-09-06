@@ -10,6 +10,8 @@ const navigation = [
   { href: "/historique", label: "Historique", icon: Clock3 },
 ];
 
+const secondaryNavigation = { href: "/alertes", label: "Alertes du moment", icon: BellRing };
+
 export function AppShell({ children }: { children: ReactNode }) {
   const [location] = useLocation();
   const { isPremium, togglePremium, monthlyCount } = useAppState();
@@ -57,6 +59,15 @@ export function AppShell({ children }: { children: ReactNode }) {
                 {href === "/bouclier" && <span className="nav-new-dot" />}
               </Link>
             ))}
+            <Link
+              href={secondaryNavigation.href}
+              className={`side-nav-link ${location === secondaryNavigation.href ? "side-nav-link-active" : ""}`}
+              data-testid="link-nav-alertes"
+            >
+              <secondaryNavigation.icon size={19} strokeWidth={location === secondaryNavigation.href ? 2.4 : 1.8} />
+              <span>{secondaryNavigation.label}</span>
+              <span className="nav-new-dot" />
+            </Link>
           </nav>
           <div className="side-footer">
             <Shield size={16} />

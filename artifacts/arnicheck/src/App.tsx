@@ -9,6 +9,7 @@ import { AppStateProvider } from '@/lib/app-state';
 import VerifyPage from '@/pages/verify';
 import FamilyPage from '@/pages/family';
 import HistoryPage from '@/pages/history';
+import AlertsPage from '@/pages/alerts';
 import {
   Route,
   Switch,
@@ -25,10 +26,11 @@ function Router() {
     <RoutedErrorBoundary>
       <AppShell>
         <Switch>
-        <Route path="/" component={VerifyPage} />
-        <Route path="/bouclier" component={FamilyPage} />
-        <Route path="/historique" component={HistoryPage} />
-        <Route component={NotFound} />
+          <Route path="/" component={VerifyPage} />
+          <Route path="/bouclier" component={FamilyPage} />
+          <Route path="/historique" component={HistoryPage} />
+          <Route path="/alertes" component={AlertsPage} />
+          <Route component={NotFound} />
         </Switch>
       </AppShell>
     </RoutedErrorBoundary>
