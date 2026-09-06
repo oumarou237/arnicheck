@@ -1,0 +1,28 @@
+kind = "web"
+previewPath = "/"
+title = "ArniCheck"
+description = "Une application mobile-first en français qui aide à identifier les messages frauduleux et à protéger ses proches grâce au Bouclier Famille."
+version = "1.0.0"
+id = "artifacts/arnicheck"
+router = "path"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 20165
+
+[services.development]
+run = "pnpm --filter @workspace/arnicheck run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/arnicheck", "run", "build" ]
+serve = "static"
+publicDir = "artifacts/arnicheck/dist/public"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "20165"
+BASE_PATH = "/"
