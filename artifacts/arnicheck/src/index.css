@@ -67,6 +67,123 @@
   --radius-xl: calc(var(--radius) + 4px);
 }
 
+/* New moments: community, sharing, weekly rhythm and theme controls */
+.theme-toggle {
+  width: 35px;
+  height: 35px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid hsl(var(--border));
+  border-radius: 10px;
+  color: var(--navy);
+  background: hsl(var(--card) / .72);
+  transition: transform .2s ease, background-color .2s ease;
+}
+.theme-toggle:hover { background: hsl(var(--muted)); transform: translateY(-1px); }
+.weekly-report {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid #c5e2d1;
+  border-radius: 18px;
+  padding: 18px;
+  background: #f1faf4;
+  color: var(--navy);
+}
+.weekly-report-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+.weekly-report-heading > svg { color: var(--coral-dark); }
+.weekly-report h2 { font-family: var(--font-serif); font-size: 1.2rem; letter-spacing: -.04em; margin: 4px 0 0; }
+.weekly-report-body { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 16px; }
+.weekly-report-body > div { padding: 11px; border-radius: 11px; background: rgba(255,253,249,.72); }
+.weekly-report-body strong, .weekly-report-body span { display: block; }
+.weekly-report-body strong { color: var(--sage-ink); font-family: var(--font-serif); font-size: 1.2rem; }
+.weekly-report-body span { color: hsl(var(--muted-foreground)); font-size: .64rem; line-height: 1.3; margin-top: 4px; }
+.weekly-report-locked .weekly-report-body { filter: blur(5px); opacity: .55; user-select: none; }
+.weekly-report-overlay { position: absolute; inset: 10px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 5px; text-align: center; border-radius: 12px; background: hsl(43 38% 96% / .82); color: var(--navy); }
+.weekly-report-overlay > svg { color: var(--coral-dark); }
+.weekly-report-overlay strong { font-size: .8rem; }
+.weekly-report-overlay span { color: hsl(var(--muted-foreground)); font-size: .68rem; }
+.weekly-report-overlay .button-coral { margin-top: 5px; }
+.share-result { margin-top: 14px; }
+.share-result-button { display: inline-flex; align-items: center; gap: 7px; border: 0; padding: 7px 0; color: var(--coral-dark); background: transparent; font-size: .74rem; font-weight: 800; }
+.share-result-button:hover { color: var(--navy); }
+.share-preview { margin-top: 9px; padding: 16px; border: 1px solid; border-radius: 15px; background: var(--paper); }
+.share-preview-danger { border-color: #f0c4b9; }
+.share-preview-caution { border-color: #ecd7ac; }
+.share-preview-safe { border-color: #c5e2d1; }
+.share-preview-top, .share-preview-verdict { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; }
+.share-brand { color: var(--navy); font-family: var(--font-serif); font-weight: 800; font-size: .9rem; letter-spacing: -.04em; }
+.share-brand span { color: var(--coral); }
+.share-close { border: 0; color: hsl(var(--muted-foreground)); background: transparent; padding: 2px; }
+.share-preview-verdict { justify-content: flex-start; align-items: center; margin-top: 13px; }
+.share-preview-icon { display: flex; align-items: center; justify-content: center; width: 35px; height: 35px; border-radius: 10px; color: var(--coral-dark); background: hsl(12 79% 66% / .14); }
+.share-preview-safe .share-preview-icon { color: var(--sage-ink); background: var(--sage); }
+.share-preview-caution .share-preview-icon { color: #94662d; background: #f7e4b8; }
+.share-preview-verdict strong { display: block; color: var(--navy); font-family: var(--font-serif); font-size: .95rem; margin-top: 5px; }
+.share-preview p { color: hsl(var(--muted-foreground)); font-size: .7rem; margin: 12px 0 8px; }
+.share-preview ul { margin: 0 0 12px; padding-left: 17px; color: var(--navy); font-size: .72rem; line-height: 1.45; }
+.share-copy { margin-top: 1px; }
+.share-reassurance { display: block; color: hsl(var(--muted-foreground)); font-size: .62rem; margin-top: 9px; }
+.community-report-cta { display: flex; align-items: center; justify-content: space-between; gap: 20px; padding: 18px; border-radius: 18px; color: var(--cream); background: var(--navy); box-shadow: 0 12px 28px hsl(222 48% 16% / .12); }
+.community-report-cta h2 { font-family: var(--font-serif); font-size: 1.15rem; letter-spacing: -.04em; margin: 4px 0 3px; }
+.community-report-cta p { color: hsl(43 43% 98% / .65); font-size: .7rem; line-height: 1.4; margin: 0; }
+.community-report-form { border: 1px solid hsl(var(--border)); border-radius: 17px; padding: 18px; background: var(--paper); animation: rise-in .3s both; }
+.form-heading { display: flex; justify-content: space-between; gap: 12px; margin-bottom: 14px; }
+.form-heading h2 { color: var(--navy); font-family: var(--font-serif); font-size: 1.15rem; letter-spacing: -.04em; margin: 4px 0 0; }
+.form-heading > span { color: hsl(var(--muted-foreground)); font-size: .65rem; }
+.community-report-form label { display: grid; gap: 6px; color: var(--navy); font-size: .72rem; font-weight: 800; margin-top: 11px; }
+.community-report-form input, .community-report-form textarea { width: 100%; border: 1px solid hsl(var(--input)); border-radius: 10px; outline: 0; color: var(--navy); background: hsl(var(--background) / .7); padding: 10px 11px; font-size: .78rem; }
+.community-report-form textarea { min-height: 88px; resize: vertical; }
+.community-report-form input:focus, .community-report-form textarea:focus { border-color: var(--coral); box-shadow: 0 0 0 3px hsl(12 79% 66% / .12); }
+.community-form-footer { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 14px; }
+.community-form-footer > span { color: hsl(var(--muted-foreground)); font-size: .64rem; line-height: 1.35; }
+.community-form-footer .button-primary { min-height: 39px; font-size: .72rem; }
+.community-success { display: flex; align-items: center; gap: 7px; color: var(--sage-ink); background: hsl(142 39% 49% / .12); border-radius: 11px; padding: 11px 13px; font-size: .72rem; font-weight: 700; }
+.alert-card-community { background: #eef8f0; border-color: #b9ddc7; }
+.alert-card-community .alert-card-icon { color: var(--sage-ink); background: var(--sage); }
+.community-badge { color: var(--sage-ink); background: #d3eadb; border-radius: 999px; padding: 5px 7px; font-size: .59rem; font-weight: 800; }
+.history-mode-label { color: var(--coral-dark); background: hsl(12 79% 66% / .1); border-radius: 999px; padding: 4px 6px; font-size: .58rem; font-weight: 800; }
+
+html.dark .app-frame { color: var(--cream); }
+html.dark body { background-image: radial-gradient(circle at 8% 5%, hsl(222 40% 20% / .7), transparent 24rem); }
+html.dark .topbar { background: hsl(var(--background) / .92); }
+html.dark .topbar-brand, html.dark .brand-wordmark, html.dark .page-heading h1, html.dark .checker-label, html.dark .mode-tab.active, html.dark .result-card h2, html.dark .deep-analysis-heading h3, html.dark .vigilance-card h3, html.dark .form-heading h2, html.dark .community-report-form label, html.dark .community-report-form input, html.dark .community-report-form textarea, html.dark .share-brand, html.dark .share-preview-verdict strong { color: var(--cream); }
+html.dark .theme-toggle, html.dark .checker-card, html.dark .community-report-form, html.dark .share-preview { background: hsl(var(--card)); }
+html.dark .side-rail-note { color: var(--cream); background: hsl(222 40% 22%); }
+html.dark .side-nav-link:hover, html.dark .side-nav-link-active { color: var(--cream); background: hsl(222 40% 22%); }
+html.dark .side-footer strong, html.dark .how-step strong, html.dark .vigilance-badge.unlocked { color: var(--cream); }
+html.dark .mode-tab.active { background: hsl(var(--card)); }
+html.dark .message-textarea, html.dark .link-input, html.dark .call-textarea { color: var(--cream); }
+html.dark .signal-row { color: var(--cream); background: hsl(var(--card) / .72); }
+html.dark .deep-analysis, html.dark .deep-analysis-body > div { background: hsl(var(--card) / .72); }
+html.dark .deep-analysis-overlay, html.dark .weekly-report-overlay { color: var(--cream); background: hsl(222 43% 15% / .9); }
+html.dark .weekly-report { background: hsl(142 25% 17%); border-color: hsl(142 30% 34%); }
+html.dark .weekly-report-body > div { background: hsl(222 43% 20% / .8); }
+html.dark .weekly-report-body span { color: hsl(var(--muted-foreground)); }
+html.dark .community-report-cta { box-shadow: none; }
+html.dark .alert-card-community { background: hsl(142 25% 17%); border-color: hsl(142 30% 34%); }
+html.dark .alert-card-coral, html.dark .result-danger { background: hsl(12 28% 18%); border-color: hsl(12 40% 35%); }
+html.dark .alert-card-sage, html.dark .result-safe { background: hsl(142 25% 17%); border-color: hsl(142 30% 34%); }
+html.dark .alert-card-amber, html.dark .result-caution { background: hsl(39 30% 18%); border-color: hsl(39 38% 34%); }
+html.dark .result-card p, html.dark .alert-card p, html.dark .alert-recognise, html.dark .vigilance-card p { color: hsl(var(--foreground) / .76); }
+html.dark .vigilance-bronze, html.dark .vigilance-silver, html.dark .vigilance-gold { background: hsl(222 35% 18%); border-color: hsl(222 28% 31%); }
+html.dark .plus-confirmation { background: hsl(142 25% 17%); border-color: hsl(142 30% 34%); }
+
+@media (max-width: 767px) {
+  .topbar { padding: 0 14px; }
+  .topbar-right { gap: 5px; }
+  .theme-toggle { width: 33px; height: 33px; }
+  .mode-tabs { width: 100%; overflow-x: auto; }
+  .mode-tab { flex: 1 0 auto; }
+  .community-report-cta { align-items: flex-start; flex-direction: column; }
+  .community-report-cta .button-coral { width: 100%; }
+  .community-form-footer { align-items: stretch; flex-direction: column; }
+  .community-form-footer .button-primary { width: 100%; }
+  .weekly-report-body { grid-template-columns: 1fr; }
+  .weekly-report-body > div { display: flex; align-items: baseline; gap: 8px; }
+  .weekly-report-body span { margin-top: 0; }
+}
+
 /* LIGHT MODE */
 :root {
   --button-outline: rgba(0, 0, 0, 0.1);
@@ -789,3 +906,23 @@ button:disabled { cursor: not-allowed; }
     inset: -1px;
   }
 }
+
+/* Theme overrides intentionally live after the legacy surfaces so every card remains readable. */
+html.dark .app-frame { color: var(--cream); }
+html.dark body { background-image: radial-gradient(circle at 8% 5%, hsl(222 40% 20% / .7), transparent 24rem); }
+html.dark .topbar { background: hsl(var(--background) / .92); }
+html.dark .topbar-brand, html.dark .brand-wordmark, html.dark .page-heading h1, html.dark .checker-label, html.dark .mode-tab.active, html.dark .result-card h2, html.dark .deep-analysis-heading h3, html.dark .vigilance-card h3, html.dark .form-heading h2, html.dark .community-report-form label, html.dark .community-report-form input, html.dark .community-report-form textarea, html.dark .share-brand, html.dark .share-preview-verdict strong { color: var(--cream); }
+html.dark .theme-toggle, html.dark .checker-card, html.dark .community-report-form, html.dark .share-preview { background: hsl(var(--card)); }
+html.dark .side-rail-note { color: var(--cream); background: hsl(222 40% 22%); }
+html.dark .side-nav-link:hover, html.dark .side-nav-link-active { color: var(--cream); background: hsl(222 40% 22%); }
+html.dark .side-footer strong, html.dark .how-step strong, html.dark .vigilance-badge.unlocked { color: var(--cream); }
+html.dark .mode-tab.active { background: hsl(var(--card)); }
+html.dark .message-textarea, html.dark .link-input, html.dark .call-textarea { color: var(--cream); }
+html.dark .signal-row { color: var(--cream); background: hsl(var(--card) / .72); }
+html.dark .deep-analysis, html.dark .deep-analysis-body > div { background: hsl(var(--card) / .72); }
+html.dark .deep-analysis-overlay, html.dark .weekly-report-overlay { color: var(--cream); background: hsl(222 43% 15% / .9); }
+html.dark .weekly-report { background: hsl(142 25% 17%); border-color: hsl(142 30% 34%); }
+html.dark .weekly-report-body > div { background: hsl(222 43% 20% / .8); }
+html.dark .weekly-report-body span { color: hsl(var(--muted-foreground)); }
+html.dark .community-report-cta { box-shadow: none; }
+html.dark .alert-card-community { background: hsl(142 25% 17%); border-color: hsl(142 30% 34%); }

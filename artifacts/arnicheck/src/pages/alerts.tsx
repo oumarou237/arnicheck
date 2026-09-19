@@ -1,6 +1,9 @@
-import { ArrowLeft, BellRing, CheckCircle2, CircleAlert, Info, ShieldAlert } from "lucide-react";
+import { ArrowLeft, BellRing, CheckCircle2, CircleAlert, Info, ShieldAlert, Users, X } from "lucide-react";
+import { useState, type FormEvent } from "react";
 import { Link } from "wouter";
 import { SectionKicker } from "@/components/shell";
+import { useAppState } from "@/lib/app-state";
+import { formatDate } from "@/components/ui";
 
 const alerts = [
   { title: "Fausse arnaque Colissimo", icon: CircleAlert, tone: "coral", explanation: "Un SMS annonce souvent un colis bloqué et réclame quelques euros pour une nouvelle livraison.", recognise: "Le lien ne mène pas vers colissimo.fr et le délai imposé est très court." },
@@ -12,6 +15,22 @@ const alerts = [
 ];
 
 export default function AlertsPage() {
+  const { communityReports, addCommunityReport } = useAppState();
+  const [formOpen, setFormOpen] = useState(false);
+  const [title, setTitle] = useState("");
+  const [detail, setDetail] = useState("");
+  const [submitted, setSubmitted] = useState(false);
+
+  const submitReport = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    if (!title.trim() || !detail.trim()) return;
+    addCommunityReport({ title: title.trim(), detail: detail.trim() });
+    setTitle("");
+    setDetail("");
+    setSubmitted(true);
+    setFormOpen(false);
+  };
+
   return (
     <div className="page-stack alerts-page">
       <div className="page-heading">
@@ -20,7 +39,30 @@ export default function AlertsPage() {
         <h1>Alertes <em>du moment.</em></h1>
         <p>Les scénarios qui circulent le plus en ce moment, expliqués sans jargon pour savoir quoi regarder.</p>
       </div>
+      <section className="community-report-cta">
+        <div><span className="eyebrow">Votre expérience peut aider</span><h2>Vous avez reçu une arnaque ?</h2><p>Partagez-la anonymement pour aider d’autres familles à la reconnaître.</p></div>
+        <button type="button" className="button-coral" onClick={() => { setFormOpen((open) => !open); setSubmitted(false); }} data-testid="button-open-community-report">
+          {formOpen ? <><X size={16} /> Fermer</> : <><Users size={16} /> Signaler une arnaque que j&apos;ai reçue</>}
+        </button>
+      </section>
+      {formOpen && (
+        <form className="community-report-form" onSubmit={submitReport} data-testid="form-community-report">
+          <div className="form-heading"><div><span className="eyebrow">Signalement anonyme</span><h2>Racontez-nous ce qui s&apos;est passé.</h2></div><span>2 champs</span></div>
+          <label>Titre court<input value={title} onChange={(event) => setTitle(event.target.value)} placeholder="Ex. Faux conseiller par téléphone" maxLength={80} data-testid="input-community-title" /></label>
+          <label>Description<textarea value={detail} onChange={(event) => setDetail(event.target.value)} placeholder="Quel prétexte, quelle demande, quel détail vous a alerté ?" maxLength={500} data-testid="input-community-description" /></label>
+          <div className="community-form-footer"><span>Pas de nom, pas de numéro : uniquement les signaux utiles.</span><button type="submit" className="button-primary" disabled={!title.trim() || !detail.trim()} data-testid="button-submit-community-report">Publier le signalement</button></div>
+        </form>
+      )}
+      {submitted && <div className="community-success" role="status" data-testid="status-community-report"><CheckCircle2 size={16} /> Merci. Votre signalement apparaît en tête du fil.</div>}
       <section className="alert-feed" aria-label="Alertes de sécurité">
+        {communityReports.map((report, index) => (
+          <article className="alert-card alert-card-community" key={report.id} data-testid={`card-community-alert-${index}`}>
+            <div className="alert-card-top"><span className="alert-card-icon"><Users size={19} /></span><span className="community-badge">Signalé par la communauté</span></div>
+            <h2>{report.title}</h2>
+            <p>{report.detail}</p>
+            <div className="alert-recognise"><CheckCircle2 size={15} /><span><strong>Partagé pour aider</strong>{formatDate(report.createdAt)}</span></div>
+          </article>
+        ))}
         {alerts.map(({ title, icon: Icon, tone, explanation, recognise }, index) => (
           <article className={`alert-card alert-card-${tone}`} key={title} data-testid={`card-alert-${index}`}>
             <div className="alert-card-top"><span className="alert-card-icon"><Icon size={19} /></span><span className="alert-card-index">0{index + 1}</span></div>

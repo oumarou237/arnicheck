@@ -8,6 +8,12 @@ function excerpt(message: string) {
   return message.length > 92 ? `${message.slice(0, 92).trim()}…` : message;
 }
 
+function modeLabel(mode?: "message" | "link" | "call") {
+  if (mode === "link") return "Lien";
+  if (mode === "call") return "Appel";
+  return "Message";
+}
+
 export default function HistoryPage() {
   const { scans, isPremium } = useAppState();
   return (
@@ -35,7 +41,7 @@ export default function HistoryPage() {
           {scans.map((scan) => (
             <article key={scan.id} className={`history-item history-item-${scan.verdict}`} data-testid={`card-history-${scan.id}`}>
               <div className="history-item-marker"><span /></div>
-              <div className="history-item-content"><div className="history-item-top"><VerdictBadge verdict={scan.verdict} compact /><DateLabel date={scan.createdAt} /></div><p>{excerpt(scan.message)}</p><span className="history-signal-count">{scan.signals.length} signal{scan.signals.length > 1 ? "s" : ""} relevé{scan.signals.length > 1 ? "s" : ""}</span></div>
+              <div className="history-item-content"><div className="history-item-top"><VerdictBadge verdict={scan.verdict} compact /><span className="history-mode-label">{modeLabel(scan.mode)}</span><DateLabel date={scan.createdAt} /></div><p>{excerpt(scan.message)}</p><span className="history-signal-count">{scan.signals.length} signal{scan.signals.length > 1 ? "s" : ""} relevé{scan.signals.length > 1 ? "s" : ""}</span></div>
               <ArrowRight size={17} className="history-arrow" />
             </article>
           ))}

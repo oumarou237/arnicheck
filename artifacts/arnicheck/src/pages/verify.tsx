@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useRef, useState, type ChangeEvent } from "react";
-import { ArrowUpRight, ClipboardPaste, ImageUp, Link2, LockKeyhole, RotateCcw, ScanLine, Shield, Sparkles, Trophy } from "lucide-react";
+import { ArrowUpRight, ClipboardPaste, ImageUp, Link2, LockKeyhole, PhoneCall, RotateCcw, ScanLine, Shield, Sparkles, Trophy } from "lucide-react";
 import { Link } from "wouter";
 import { SectionKicker, UpgradeCard } from "@/components/shell";
+import { ShareResult } from "@/components/share-result";
 import { SignalRow, VerdictBadge, VerdictIcon, verdictContent } from "@/components/ui";
 import { useAppState, type Verdict } from "@/lib/app-state";
 
@@ -40,22 +41,50 @@ function detectLink(value: string): { verdict: Verdict; signals: string[]; riskS
   return { verdict: riskScore >= 55 ? "danger" : riskScore >= 28 ? "caution" : "safe", signals, riskScore };
 }
 
+function detectCall(value: string): { verdict: Verdict; signals: string[]; riskScore: number } {
+  const normalized = value.toLowerCase();
+  const signals: string[] = [];
+  let score = 6;
+  if (/urgent|urgence|immédiat|tout de suite|maintenant|dans l'heure|sous 24 ?h/.test(normalized)) {
+    signals.push("La pression du temps cherche à vous empêcher de réfléchir ou de vérifier.");
+    score += 28;
+  }
+  if (/virement|paiement|payer|carte|rib|code|otp|transfert|argent|rembourser|remboursement/.test(normalized)) {
+    signals.push("L’appel évoque de l’argent, un paiement ou un code confidentiel.");
+    score += 30;
+  }
+  if (/banque|conseiller|police|gendarmerie|impôts|caf|assurance|livreur|support|service client|ami|fils|fille/.test(normalized)) {
+    signals.push("L’interlocuteur semble se faire passer pour un organisme ou un proche.");
+    score += 24;
+  }
+  if (/ne dites rien|restez en ligne|ne raccrochez pas|confidentiel|sanction|plainte|compte bloqué|problème grave|dernier avertissement/.test(normalized)) {
+    signals.push("Le discours joue sur la peur, le secret ou l’isolement pour obtenir une réaction.");
+    score += 25;
+  }
+  if (!signals.length) signals.push("Aucun signal évident n’a été repéré dans votre description.", "Prenez toujours le temps de rappeler l’organisme via son numéro officiel.");
+  const riskScore = Math.min(98, score);
+  return { verdict: riskScore >= 55 ? "danger" : riskScore >= 28 ? "caution" : "safe", signals, riskScore };
+}
+
 export default function VerifyPage() {
-  const { addScan, addAlert, isPremium, monthlyCount, streak, badges } = useAppState();
-  const [mode, setMode] = useState<"message" | "link">("message");
+  const { addScan, addAlert, isPremium, monthlyCount, streak, badges, scans } = useAppState();
+  const [mode, setMode] = useState<"message" | "link" | "call">("message");
   const [message, setMessage] = useState("");
   const [link, setLink] = useState("");
+  const [call, setCall] = useState("");
   const [isOcrReading, setIsOcrReading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isScanning, setIsScanning] = useState(false);
   const [scanStep, setScanStep] = useState(0);
-  const [result, setResult] = useState<{ verdict: Verdict; signals: string[]; message: string; mode: "message" | "link"; riskScore?: number } | null>(null);
+  const [result, setResult] = useState<{ verdict: Verdict; signals: string[]; message: string; mode: "message" | "link" | "call"; riskScore?: number } | null>(null);
 
   const scanSteps = mode === "message"
     ? ["Lecture du message", "Repérage des signaux", "Préparation de votre réponse"]
-    : ["Lecture du lien", "Repérage des signaux", "Préparation de votre réponse"];
+    : mode === "link"
+      ? ["Lecture du lien", "Repérage des signaux", "Préparation de votre réponse"]
+      : ["Écoute de votre description", "Repérage des signaux", "Préparation de votre réponse"];
   const canAnalyze = isPremium || monthlyCount < 5;
-  const currentValue = mode === "message" ? message : link;
+  const currentValue = mode === "message" ? message : mode === "link" ? link : call;
   const characterCount = currentValue.length;
 
   useEffect(() => {
@@ -65,7 +94,7 @@ export default function VerifyPage() {
   }, [isScanning]);
 
   const analysisHint = useMemo(() => {
-    if (!currentValue.trim()) return mode === "message" ? "Collez ici un SMS, un e-mail ou un message reçu." : "Collez une adresse web complète à analyser.";
+    if (!currentValue.trim()) return mode === "message" ? "Collez ici un SMS, un e-mail ou un message reçu." : mode === "link" ? "Collez une adresse web complète à analyser." : "Décrivez ce que l’interlocuteur vous a demandé.";
     return `${characterCount} caractères · votre message reste sur cet appareil`;
   }, [characterCount, currentValue, mode]);
 
@@ -87,9 +116,9 @@ export default function VerifyPage() {
     setScanStep(0);
     setResult(null);
     window.setTimeout(() => {
-      const detected = mode === "message" ? detectMessage(message) : detectLink(link);
-      const scanMessage = mode === "message" ? message.trim() : `Lien vérifié : ${link.trim()}`;
-      const riskScore: number | undefined = mode === "link" ? (detected as unknown as { riskScore: number }).riskScore : undefined;
+      const detected = mode === "message" ? detectMessage(message) : mode === "link" ? detectLink(link) : detectCall(call);
+      const scanMessage = mode === "message" ? message.trim() : mode === "link" ? `Lien vérifié : ${link.trim()}` : `Appel reçu : ${call.trim()}`;
+      const riskScore: number | undefined = mode === "message" ? undefined : mode === "link" ? detectLink(link).riskScore : detectCall(call).riskScore;
       addScan({ message: scanMessage, mode, riskScore, verdict: detected.verdict, signals: detected.signals });
       if (detected.verdict === "danger") {
         addAlert({
@@ -108,8 +137,8 @@ export default function VerifyPage() {
       <div className="page-heading verify-heading">
         <div>
           <SectionKicker><span className="kicker-dot" /> Vérification confidentielle</SectionKicker>
-          <h1>On regarde ce {mode === "message" ? "message" : "lien"} <em>ensemble.</em></h1>
-          <p>{mode === "message" ? "Collez ce qui vous paraît bizarre." : "Collez une adresse qui vous semble étrange."} ArniCheck vous explique les signaux, sans vous faire peur.</p>
+          <h1>On regarde cet {mode === "message" ? "message" : mode === "link" ? "lien" : "appel"} <em>ensemble.</em></h1>
+          <p>{mode === "message" ? "Collez ce qui vous paraît bizarre." : mode === "link" ? "Collez une adresse qui vous semble étrange." : "Décrivez ce que l’on vous a demandé."} ArniCheck vous explique les signaux, sans vous faire peur.</p>
         </div>
         <div className="trust-note"><LockKeyhole size={15} /> Rien ne quitte cet appareil</div>
       </div>
@@ -117,23 +146,26 @@ export default function VerifyPage() {
       <div className="mode-tabs" role="tablist" aria-label="Type de vérification">
         <button type="button" className={mode === "message" ? "mode-tab active" : "mode-tab"} onClick={() => { setMode("message"); setResult(null); }} role="tab" aria-selected={mode === "message"} data-testid="tab-verify-message"><ClipboardPaste size={15} /> Vérifier un message</button>
         <button type="button" className={mode === "link" ? "mode-tab active" : "mode-tab"} onClick={() => { setMode("link"); setResult(null); }} role="tab" aria-selected={mode === "link"} data-testid="tab-verify-link"><Link2 size={15} /> Vérifier un lien</button>
+         <button type="button" className={mode === "call" ? "mode-tab active" : "mode-tab"} onClick={() => { setMode("call"); setResult(null); }} role="tab" aria-selected={mode === "call"} data-testid="tab-verify-call"><PhoneCall size={15} /> Appel reçu</button>
       </div>
 
       <section className={`checker-card ${isScanning ? "checker-scanning" : ""} ${result ? "checker-has-result" : ""}`}>
         <div className="checker-card-top">
-          <div className="checker-label"><span className="field-number">01</span><span>{mode === "message" ? "Le message reçu" : "L’adresse à vérifier"}</span></div>
+          <div className="checker-label"><span className="field-number">01</span><span>{mode === "message" ? "Le message reçu" : mode === "link" ? "L’adresse à vérifier" : "Ce que l’on vous a dit"}</span></div>
           {mode === "message" ? (
             <div className="checker-actions">
               <button type="button" className="paste-button" onClick={() => setMessage(exampleMessage)} data-testid="button-fill-example"><ClipboardPaste size={15} /> Exemple</button>
               <button type="button" className="paste-button" onClick={() => fileInputRef.current?.click()} disabled={isOcrReading} data-testid="button-import-screenshot"><ImageUp size={15} /> Capture d’écran</button>
               <input ref={fileInputRef} type="file" accept="image/*" onChange={handleOcr} hidden data-testid="input-screenshot" />
             </div>
-          ) : <button type="button" className="paste-button" onClick={() => setLink(exampleLink)} data-testid="button-fill-link-example"><Link2 size={15} /> Exemple</button>}
+          ) : mode === "link" ? <button type="button" className="paste-button" onClick={() => setLink(exampleLink)} data-testid="button-fill-link-example"><Link2 size={15} /> Exemple</button> : <button type="button" className="paste-button" onClick={() => setCall("Un conseiller bancaire m’a appelé en urgence : il disait vouloir annuler un virement et demandait le code reçu par SMS.")} data-testid="button-fill-call-example"><PhoneCall size={15} /> Exemple</button>}
         </div>
         {mode === "message" ? (
           <textarea value={message} onChange={(event) => { setMessage(event.target.value); setResult(null); }} placeholder="Collez votre SMS, e-mail ou message ici…" className="message-textarea" data-testid="input-suspicious-message" aria-label="Message à vérifier" disabled={isScanning || isOcrReading} />
-        ) : (
+        ) : mode === "link" ? (
           <input value={link} onChange={(event) => { setLink(event.target.value); setResult(null); }} placeholder="https://exemple.fr/ma-page" className="link-input" data-testid="input-suspicious-link" aria-label="Lien à vérifier" disabled={isScanning} inputMode="url" />
+        ) : (
+          <textarea value={call} onChange={(event) => { setCall(event.target.value); setResult(null); }} placeholder="Ex. Un faux conseiller m’a demandé de valider un virement…" className="message-textarea call-textarea" data-testid="input-suspicious-call" aria-label="Description de l’appel à vérifier" disabled={isScanning} />
         )}
         {isOcrReading && <div className="ocr-note"><ImageUp size={15} className="scan-pulse" /> Lecture du message en cours... <span>OCR réel sera branché ensuite.</span></div>}
         <div className="checker-card-bottom">
@@ -153,7 +185,7 @@ export default function VerifyPage() {
              disabled={!currentValue.trim() || !canAnalyze || isOcrReading}
             data-testid="button-analyze"
           >
-             <span>{canAnalyze ? (mode === "message" ? "Vérifier ce message" : "Analyser ce lien") : "Limite mensuelle atteinte"}</span>
+             <span>{canAnalyze ? (mode === "message" ? "Vérifier ce message" : mode === "link" ? "Analyser ce lien" : "Analyser cet appel") : "Limite mensuelle atteinte"}</span>
             <ArrowUpRight size={18} />
           </button>
         )}
@@ -184,7 +216,8 @@ export default function VerifyPage() {
           {result.verdict === "danger" && <div className="advice-strip"><strong>Le bon réflexe :</strong> fermez le message, puis contactez l’organisme via son numéro officiel.</div>}
           {result.verdict === "safe" && <div className="advice-strip safe-advice"><strong>Un rappel doux :</strong> même un message fiable ne vous demandera jamais votre code secret par retour.</div>}
            <DeepAnalysis isPremium={isPremium} verdict={result.verdict} riskScore={result.riskScore ?? (result.verdict === "danger" ? 78 : result.verdict === "caution" ? 46 : 14)} mode={result.mode} />
-          <button type="button" className="button-quiet" onClick={() => { setResult(null); setMessage(""); }} data-testid="button-new-analysis"><RotateCcw size={15} /> Vérifier un autre message</button>
+           <ShareResult verdict={result.verdict} signals={result.signals} mode={result.mode} />
+           <button type="button" className="button-quiet" onClick={() => { setResult(null); setMessage(""); setLink(""); setCall(""); }} data-testid="button-new-analysis"><RotateCcw size={15} /> Vérifier un autre contenu</button>
         </section>
       )}
 
@@ -199,12 +232,42 @@ export default function VerifyPage() {
             <div className="how-step"><span>3</span><p><strong>Vous décidez</strong><br />sans pression</p></div>
           </div>
           <UpgradeCard />
+           <WeeklyReport scans={scans} isPremium={isPremium} />
            <Link href="/alertes" className="alerts-home-link" data-testid="link-alertes-home"><Sparkles size={15} /> Voir les alertes du moment <ArrowUpRight size={15} /></Link>
            <VigilanceCard streak={streak} badges={badges} />
           <p className="fine-print">ArniCheck est un compagnon pédagogique. En cas de doute persistant, contactez directement l’organisme concerné via un canal officiel.</p>
         </div>
       )}
     </div>
+  );
+}
+
+function WeeklyReport({ scans, isPremium }: { scans: ReturnType<typeof useAppState>["scans"]; isPremium: boolean }) {
+  const { togglePremium } = useAppState();
+  const weekStart = Date.now() - 7 * 86400000;
+  const recent = scans.filter((scan) => new Date(scan.createdAt).getTime() >= weekStart);
+  const dangerAvoided = recent.filter((scan) => scan.verdict === "danger").length;
+  const saved = dangerAvoided * 87.5 + recent.filter((scan) => scan.verdict === "caution").length * 12.5;
+  return (
+    <section className={`weekly-report ${!isPremium ? "weekly-report-locked" : ""}`} data-testid="card-weekly-report">
+      <div className="weekly-report-heading">
+        <div><span className="eyebrow">ArniCheck Plus</span><h2>Ton bilan de la semaine</h2></div>
+        <Sparkles size={18} />
+      </div>
+      <div className="weekly-report-body">
+        <div><strong>{recent.length}</strong><span>analyse{recent.length > 1 ? "s" : ""} ces 7 derniers jours</span></div>
+        <div><strong>{dangerAvoided}</strong><span>danger{dangerAvoided > 1 ? "s" : ""} évité{dangerAvoided > 1 ? "s" : ""}</span></div>
+        <div><strong>{saved.toFixed(2).replace(".", ",")} €</strong><span>économie estimée</span></div>
+      </div>
+      {!isPremium && (
+        <div className="weekly-report-overlay">
+          <LockKeyhole size={18} />
+          <strong>Votre semaine, en un coup d’œil</strong>
+          <span>Un suivi privé pour voir vos bons réflexes progresser.</span>
+          <button type="button" className="button-coral button-small" onClick={togglePremium} data-testid="button-upgrade-weekly-report">Débloquer avec Premium</button>
+        </div>
+      )}
+    </section>
   );
 }
 
@@ -218,10 +281,10 @@ function VigilanceCard({ streak, badges }: { streak: number; badges: ReturnType<
   );
 }
 
-function DeepAnalysis({ isPremium, verdict, riskScore, mode }: { isPremium: boolean; verdict: Verdict; riskScore: number; mode: "message" | "link" }) {
+function DeepAnalysis({ isPremium, verdict, riskScore, mode }: { isPremium: boolean; verdict: Verdict; riskScore: number; mode: "message" | "link" | "call" }) {
   const { togglePremium } = useAppState();
   const copy = verdict === "danger"
-    ? { context: mode === "link" ? "Le domaine semble chercher à détourner votre attention vers une fausse destination." : "Le message combine urgence et demande d’informations, une mécanique fréquente des campagnes ciblées.", sophistication: "La présentation est assez crédible pour passer un premier regard, mais les signaux se recoupent.", next: "Ne répondez pas. Signalez-le, puis ouvrez le site officiel en le tapant vous-même." }
+    ? { context: mode === "link" ? "Le domaine semble chercher à détourner votre attention vers une fausse destination." : mode === "call" ? "L’appel combine urgence, autorité et demande d’action : une mécanique fréquente des fraudes au faux conseiller." : "Le message combine urgence et demande d’informations, une mécanique fréquente des campagnes ciblées.", sophistication: "La présentation est assez crédible pour passer un premier regard, mais les signaux se recoupent.", next: "Ne répondez pas. Signalez-le, puis ouvrez le site officiel en le tapant vous-même." }
     : verdict === "caution"
       ? { context: "Certains éléments peuvent avoir une explication légitime, mais le contexte manque pour agir sereinement.", sophistication: "Le scénario reste ambigu : c’est précisément le moment de vérifier par un second canal.", next: "Prenez une pause et demandez confirmation à l’organisme avec un contact trouvé indépendamment." }
       : { context: "Le contenu observé ressemble à une communication habituelle et ne pousse pas à transmettre un secret.", sophistication: "Aucune combinaison de signaux techniques ou émotionnels marqués n’a été relevée.", next: "Gardez vos habitudes : application officielle, mot de passe unique et aucun code partagé." };

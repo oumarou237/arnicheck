@@ -1,5 +1,6 @@
-import { BellRing, Clock3, Shield, Sparkles, SearchCheck } from "lucide-react";
+import { BellRing, Clock3, Moon, Shield, Sparkles, SearchCheck, Sun } from "lucide-react";
 import type { ReactNode } from "react";
+import { useEffect, useState } from "react";
 import { Link, useLocation } from "wouter";
 import { useAppState } from "@/lib/app-state";
 import { Brand } from "@/components/brand";
@@ -15,6 +16,15 @@ const secondaryNavigation = { href: "/alertes", label: "Alertes du moment", icon
 export function AppShell({ children }: { children: ReactNode }) {
   const [location] = useLocation();
   const { isPremium, togglePremium, monthlyCount } = useAppState();
+  const [isDark, setIsDark] = useState(() => {
+    try { return window.localStorage.getItem("arnicheck-theme") === "dark"; } catch { return false; }
+  });
+
+  useEffect(() => {
+    document.documentElement.classList.toggle("dark", isDark);
+    document.documentElement.dataset.theme = isDark ? "dark" : "light";
+    try { window.localStorage.setItem("arnicheck-theme", isDark ? "dark" : "light"); } catch { /* memory fallback */ }
+  }, [isDark]);
 
   return (
     <div className="app-frame">
@@ -27,6 +37,9 @@ export function AppShell({ children }: { children: ReactNode }) {
             <span className="usage-dot" />
             {isPremium ? "ArniCheck Plus" : `${monthlyCount}/5 analyses`}
           </div>
+          <button type="button" className="theme-toggle" onClick={() => setIsDark((value) => !value)} aria-label={isDark ? "Activer le thème clair" : "Activer le thème sombre"} data-testid="button-toggle-theme">
+            {isDark ? <Sun size={16} /> : <Moon size={16} />}
+          </button>
           <button
             type="button"
             onClick={togglePremium}

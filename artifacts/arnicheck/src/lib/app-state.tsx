@@ -5,7 +5,7 @@ export type Verdict = "danger" | "caution" | "safe";
 export type Scan = {
   id: string;
   message: string;
-  mode?: "message" | "link";
+  mode?: "message" | "link" | "call";
   riskScore?: number;
   verdict: Verdict;
   signals: string[];
@@ -34,10 +34,19 @@ export type FamilyAlert = {
   kind: "relay" | "scan";
 };
 
+export type CommunityReport = {
+  id: string;
+  title: string;
+  detail: string;
+  createdAt: string;
+  kind: "community";
+};
+
 type AppStateValue = {
   scans: Scan[];
   relatives: Relative[];
   alerts: FamilyAlert[];
+  communityReports: CommunityReport[];
   isPremium: boolean;
   monthlyCount: number;
   streak: number;
@@ -47,6 +56,7 @@ type AppStateValue = {
   removeRelative: (id: string) => void;
   togglePremium: () => void;
   addAlert: (alert: Omit<FamilyAlert, "id" | "createdAt">) => void;
+  addCommunityReport: (report: Omit<CommunityReport, "id" | "createdAt" | "kind">) => void;
 };
 
 const StateContext = createContext<AppStateValue | null>(null);
@@ -87,6 +97,7 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
   const [scans, setScans] = useState<Scan[]>(() => storage.get("arnicheck-scans", []));
   const [relatives, setRelatives] = useState<Relative[]>(() => storage.get("arnicheck-relatives", []));
   const [alerts, setAlerts] = useState<FamilyAlert[]>(() => storage.get("arnicheck-alerts", []));
+  const [communityReports, setCommunityReports] = useState<CommunityReport[]>(() => storage.get("arnicheck-community-reports", []));
   const [isPremium, setIsPremium] = useState<boolean>(() => storage.get("arnicheck-premium", false));
   const [streakData, setStreakData] = useState<{ count: number; lastDay: string | null }>(() =>
     storage.get("arnicheck-streak", { count: 0, lastDay: null }),
@@ -95,6 +106,7 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
   useEffect(() => storage.set("arnicheck-scans", scans), [scans]);
   useEffect(() => storage.set("arnicheck-relatives", relatives), [relatives]);
   useEffect(() => storage.set("arnicheck-alerts", alerts), [alerts]);
+  useEffect(() => storage.set("arnicheck-community-reports", communityReports), [communityReports]);
   useEffect(() => storage.set("arnicheck-premium", isPremium), [isPremium]);
   useEffect(() => storage.set("arnicheck-streak", streakData), [streakData]);
 
@@ -114,6 +126,7 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
       scans,
       relatives,
       alerts,
+      communityReports,
       isPremium,
       monthlyCount,
       streak: streakData.count,
@@ -139,8 +152,13 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
       togglePremium: () => setIsPremium((current) => !current),
       addAlert: (alert) =>
         setAlerts((current) => [{ ...alert, id: crypto.randomUUID(), createdAt: new Date().toISOString() }, ...current]),
+      addCommunityReport: (report) =>
+        setCommunityReports((current) => [
+          { ...report, kind: "community", id: crypto.randomUUID(), createdAt: new Date().toISOString() },
+          ...current,
+        ]),
     }),
-    [alerts, badges, isPremium, monthlyCount, relatives, scans, streakData.count],
+    [alerts, badges, communityReports, isPremium, monthlyCount, relatives, scans, streakData.count],
   );
 
   return <StateContext.Provider value={value}>{children}</StateContext.Provider>;
