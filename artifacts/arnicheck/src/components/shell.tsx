@@ -1,4 +1,4 @@
-import { BellRing, Clock3, Moon, Shield, Sparkles, SearchCheck, Sun } from "lucide-react";
+import { BellRing, Clock3, Moon, Shield, Sparkles, SearchCheck, Sun, UserRound } from "lucide-react";
 import type { ReactNode } from "react";
 import { useEffect, useState } from "react";
 import { Link, useLocation } from "wouter";
@@ -40,6 +40,10 @@ export function AppShell({ children }: { children: ReactNode }) {
           <button type="button" className="theme-toggle" onClick={() => setIsDark((value) => !value)} aria-label={isDark ? "Activer le thème clair" : "Activer le thème sombre"} data-testid="button-toggle-theme">
             {isDark ? <Sun size={16} /> : <Moon size={16} />}
           </button>
+          <Link href="/profil" className={`profile-link ${location === "/profil" ? "profile-link-active" : ""}`} aria-label="Ouvrir mon profil" data-testid="link-profile">
+            <UserRound size={17} />
+            <span className="hidden sm:inline">Profil</span>
+          </Link>
           <button
             type="button"
             onClick={togglePremium}

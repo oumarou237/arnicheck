@@ -1,4 +1,4 @@
-import { type ReactNode } from 'react';
+import { type ReactNode, useState } from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ErrorBoundary } from '@/components/error-boundary';
 import { Toaster } from '@/components/ui/toaster';
@@ -10,6 +10,8 @@ import VerifyPage from '@/pages/verify';
 import FamilyPage from '@/pages/family';
 import HistoryPage from '@/pages/history';
 import AlertsPage from '@/pages/alerts';
+import ProfilePage from '@/pages/profile';
+import { FirstLaunchOnboarding, shouldShowOnboarding } from '@/components/onboarding';
 import {
   Route,
   Switch,
@@ -30,6 +32,7 @@ function Router() {
           <Route path="/bouclier" component={FamilyPage} />
           <Route path="/historique" component={HistoryPage} />
           <Route path="/alertes" component={AlertsPage} />
+          <Route path="/profil" component={ProfilePage} />
           <Route component={NotFound} />
         </Switch>
       </AppShell>
@@ -43,13 +46,19 @@ function RoutedErrorBoundary({ children }: { children: ReactNode }) {
 }
 
 function App() {
+  const [showOnboarding, setShowOnboarding] = useState(shouldShowOnboarding);
+
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
         <AppStateProvider>
-          <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, '')}>
-            <Router />
-          </WouterRouter>
+          {showOnboarding ? (
+            <FirstLaunchOnboarding onComplete={() => setShowOnboarding(false)} />
+          ) : (
+            <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, '')}>
+              <Router />
+            </WouterRouter>
+          )}
         </AppStateProvider>
         <Toaster />
       </TooltipProvider>

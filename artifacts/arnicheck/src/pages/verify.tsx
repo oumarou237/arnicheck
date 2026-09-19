@@ -3,6 +3,7 @@ import { ArrowUpRight, ClipboardPaste, ImageUp, Link2, LockKeyhole, PhoneCall, R
 import { Link } from "wouter";
 import { SectionKicker, UpgradeCard } from "@/components/shell";
 import { ShareResult } from "@/components/share-result";
+import { NotificationMockup, TipOfTheDay } from "@/components/home-widgets";
 import { SignalRow, VerdictBadge, VerdictIcon, verdictContent } from "@/components/ui";
 import { useAppState, type Verdict } from "@/lib/app-state";
 
@@ -231,6 +232,8 @@ export default function VerifyPage() {
             <div className="how-line" />
             <div className="how-step"><span>3</span><p><strong>Vous décidez</strong><br />sans pression</p></div>
           </div>
+          <TipOfTheDay />
+          <NotificationMockup />
           <UpgradeCard />
            <WeeklyReport scans={scans} isPremium={isPremium} />
            <Link href="/alertes" className="alerts-home-link" data-testid="link-alertes-home"><Sparkles size={15} /> Voir les alertes du moment <ArrowUpRight size={15} /></Link>
