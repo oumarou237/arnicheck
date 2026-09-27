@@ -43,6 +43,8 @@ Oumarou Moustapha — Projet réalisé pour le RevenueCat Shipaton 2026,
 catégorie Next Gen Award
 
 ## 🚀 Démo
+lien de la vidéo demo
 
-
-[Lien vers la vidéo de démo]
+[https://youtu.be/W4GWTDRORjo]
+lien de l'application 
+[https://arni-check-bouclier-famille--oumaroumousta.replit.app]
